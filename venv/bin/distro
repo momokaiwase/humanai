@@ -1,4 +1,4 @@
-#!/Users/momoka/humanai/venv/bin/python3
+#!/Users/momoka/humanai-1/venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys
