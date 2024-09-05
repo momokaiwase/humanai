@@ -87,7 +87,7 @@ function App() {
   return (
     <div className="flex flex-col h-screen">
       <div className="sticky top-0 p-4 z-10">
-        <h1 className="text-4xl mb-4">Chat Interface</h1>
+        <h1 className="text-4xl mb-4">AI Assistant</h1>
       </div>
       <div className="flex-1 overflow-y-auto p-4">
         {/* Chat History */}
