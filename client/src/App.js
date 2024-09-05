@@ -96,20 +96,17 @@ function App() {
             {chatHistory.map((entry, index) => (
               <div key={index} className={`chat ${entry.sender === 'user' ? 'chat-end' : 'chat-start'}`}>
                 <div className="chat-image avatar">
-                  <div className="w-10 rounded-full">
-                    <img
-                      alt="Avatar"
-                      src={entry.sender === 'user'
-                        ? "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-                        : "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-                      }
-                    />
-                  </div>
+                  <div
+                    className="w-10 h-10 rounded-full"
+                    style={{
+                      backgroundColor: entry.sender === 'user' ? '#307D7E' : '#30748B' // Different colors for user and bot
+                    }}
+                  />
                 </div>
+
                 <div className="chat-header">
                   {entry.sender === 'user' ? 'You' : 'Bot'}
                 </div>
-                {/* Chat Bubble */}
                 <div className="chat-bubble">{entry.text}</div>
               </div>
             ))}
@@ -138,79 +135,5 @@ function App() {
   );
 }
 
-
-
-
-/*
-  return (
-    <div className="container mx-auto mt-10">
-    <h1 className="text-4xl mb-4">Chat Interface</h1>
-
-    <div style={{ maxWidth: '800px' }} className="mx-auto">
-      <div className="chat-box flex flex-col space-y-4">
-        {chatHistory.map((entry, index) => (
-          <div key={index} className={`chat ${entry.sender === 'user' ? 'chat-end' : 'chat-start'}`}>
-            <div className="chat-image avatar">
-              <div className="w-10 rounded-full">
-                <img
-                  alt="Avatar"
-                  src={entry.sender === 'user'
-                    ? "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" // User Avatar
-                    : "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" // Bot Avatar (use different image if desired)
-                  }
-                />
-              </div>
-            </div>
-            <div className="chat-header">
-              {entry.sender === 'user' ? 'You' : 'Bot'}
-            </div>
-            <div className="chat-bubble">{entry.text}</div>
-          </div>
-        ))}
-      </div>
-      <div className="mt-5 flex gap-2">
-        <input
-          type="text"
-          placeholder="Type your message here"
-          value={message}
-          className="input input-bordered flex-grow"
-          onChange={handleMessage}
-          onKeyDown={handleKeyPress}
-        />
-        <button className="btn flex-shrink-0" onClick={sendMessage}>Send</button>
-      </div>
-    </div>
-  </div>
-);
-}
-*/
-
-
-
-/*     <div className="container mx-auto mt-10">
-      <h1 className="text-4xl">Ask Anything!</h1>
-      <div className="chat-box border p-4 mb-4 rounded bg-gray-100">
-        {chatHistory.map((entry, index) => (
-          <div key={index} className={`chat-message ${entry.sender === 'user' ? 'text-right' : 'text-left'}`}>
-            <div className={`message ${entry.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>
-              {entry.text}
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="mt-5 flex gap-2">
-        <input type="text" placeholder="Type your message here" value={message} className="input input-bordered w-full max-w-xs" onInput={handleMessage} />
-        <button className="btn" onClick={sendMessage}>Send</button>
-      </div>
-
-      {/* <div className="card mt-10">
-        <h2 className="text-xl">Response</h2>
-        <div className="mt-5">
-        🤖: {response}
-        </div>
-      </div>  }
-    </div>
-  );
-} */
 
 export default App;
