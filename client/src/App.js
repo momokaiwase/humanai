@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { useEffect, useRef } from 'react';
 //const url = process.env.NODE_ENV === 'production' ? 'https://course-tools-demo.onrender.com/' : 'http://127.0.0.1:8000/';
 
 function App() {
@@ -75,10 +76,76 @@ function App() {
     }
   }
 
+  const chatEndRef = useRef(null);
+
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatHistory]);
+
+  return (
+    <div className="flex flex-col h-screen">
+      <div className="sticky top-0 p-4 z-10">
+        <h1 className="text-4xl mb-4">Chat Interface</h1>
+      </div>
+      <div className="flex-1 overflow-y-auto p-4">
+        {/* Chat History */}
+        <div className="w-custom-md lg:w-custom-lg mx-auto p-4">
+          <div className="chat-box flex flex-col space-y-4">
+            {chatHistory.map((entry, index) => (
+              <div key={index} className={`chat ${entry.sender === 'user' ? 'chat-end' : 'chat-start'}`}>
+                <div className="chat-image avatar">
+                  <div className="w-10 rounded-full">
+                    <img
+                      alt="Avatar"
+                      src={entry.sender === 'user'
+                        ? "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+                        : "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="chat-header">
+                  {entry.sender === 'user' ? 'You' : 'Bot'}
+                </div>
+                {/* Chat Bubble */}
+                <div className="chat-bubble">{entry.text}</div>
+              </div>
+            ))}
+            <div ref={chatEndRef} /> {/* Scroll to this element */}
+          </div>
+        </div>
+      </div>
+
+      {/* Input Field */}
+      <div className="p-4 border-t">
+        <div className="w-custom-md lg:w-custom-lg mx-auto">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Type your message here"
+              value={message}
+              className="input input-bordered flex-grow"
+              onChange={handleMessage}
+              onKeyDown={handleKeyPress}
+            />
+            <button className="btn flex-shrink-0" onClick={sendMessage}>Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+
+
+/*
   return (
     <div className="container mx-auto mt-10">
     <h1 className="text-4xl mb-4">Chat Interface</h1>
-    
+
     <div style={{ maxWidth: '800px' }} className="mx-auto">
       <div className="chat-box flex flex-col space-y-4">
         {chatHistory.map((entry, index) => (
@@ -98,7 +165,6 @@ function App() {
               {entry.sender === 'user' ? 'You' : 'Bot'}
             </div>
             <div className="chat-bubble">{entry.text}</div>
-            {/* Removed chat-footer */}
           </div>
         ))}
       </div>
@@ -117,7 +183,7 @@ function App() {
   </div>
 );
 }
-
+*/
 
 
 
