@@ -1,13 +1,59 @@
 
 import { useState } from 'react';
 import { useEffect, useRef } from 'react';
+import { csvParse, autoType } from 'd3-dsv'; //import d3-dsv for CSV parsing
+
 const url = process.env.NODE_ENV === 'production' ? 'https://course-tools-demo.onrender.com/' : 'http://127.0.0.1:8000/';
 
 function App() {
   const [message, setMessage] = useState("");
   //const [response, setResponse] = useState([]);
   const [chatHistory, setChatHistory] = useState([]);
+  const [fileData, setFileData] = useState(null);
+  const [fileError, setFileError] = useState("");
+  const [dragging, setDragging] = useState(false);
   
+  //handle file upload and csv parsing
+  const handleFileUpload = (file) => {
+    if (file && file.name.endsWith('.csv')) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = event.target.result;
+        const parsedData = csvParse(text, autoType);
+        setFileData(parsedData);
+        setFileError(""); //clear error messages
+      };
+      reader.readAsText(file);
+    } else {
+      setFileError("Please upload a valid CSV file.");
+      setFileData(null); //clear previous data
+    }
+  };
+
+  // Handle drag events
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragging(false);
+    const file = e.dataTransfer.files[0];
+    handleFileUpload(file);
+  };
+
+  const handleFileInputChange = (e) => {
+    const file = e.target.files[0];
+    handleFileUpload(file);
+  };
+
+
+  //send message to backend
   function sendMessage() {
     if (message === "") {
       return;
@@ -86,6 +132,58 @@ function App() {
       <div className="sticky top-0 p-4 z-10">
         <h1 className="text-4xl mb-4">AI Assistant</h1>
       </div>
+      {/* File Upload Section */}
+      <div
+        className={`p-6 border-2 border-dotted rounded-md mx-auto text-center transition-colors 
+          ${dragging ? 'bg-base-300' : 'bg-base-200'} w-1/2`} // Use DaisyUI's base color classes
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        <input
+          type="file"
+          accept=".csv"
+          className="hidden"
+          id="file-upload"
+          onChange={handleFileInputChange}
+        />
+        <label
+          htmlFor="file-upload"
+          className="cursor-pointer p-2 block"
+        >
+          {fileData ? (
+            <span>CSV File Uploaded</span>
+          ) : (
+            <span>Drag & Drop or Click to Upload CSV File</span>
+          )}
+        </label>
+        {fileError && <p className="text-error">{fileError}</p>} {/* Use DaisyUI's text-error class */}
+        {fileData && (
+          <div className="mt-4">
+            <h3 className="text-lg font-bold">Data Preview (first 5 rows):</h3>
+            <table className="table w-full">
+              <thead>
+                <tr>
+                  {Object.keys(fileData[0]).map((key, index) => (
+                    <th key={index}>{key}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {fileData.slice(0, 5).map((row, rowIndex) => (
+                  <tr key={rowIndex}>
+                    {Object.values(row).map((value, colIndex) => (
+                      <td key={colIndex}>{value}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+
       <div className="flex-1 overflow-y-auto p-4">
         {/* Chat History */}
         <div className="w-custom-md lg:w-custom-lg mx-auto p-4">
