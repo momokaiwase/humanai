@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useEffect, useRef } from 'react';
-//const url = process.env.NODE_ENV === 'production' ? 'https://course-tools-demo.onrender.com/' : 'http://127.0.0.1:8000/';
+const url = process.env.NODE_ENV === 'production' ? 'https://course-tools-demo.onrender.com/' : 'http://127.0.0.1:8000/';
 
 function App() {
   const [message, setMessage] = useState("");
@@ -15,56 +15,53 @@ function App() {
     const userMessage = { text: message, sender: "user" }; // add user message to chat history
     setChatHistory(prevHistory => [...prevHistory, userMessage]);
     setMessage(""); //reset to no message
-    
-    // Simulated bot response (full message)
-    const botFullResponse = "I’m a simple bot. I don’t have real responses yet!";
+  
+    // Add empty bot message as a placeholder in chat history
     const botMessage = { text: "", sender: "bot" };
-    setChatHistory(prevHistory => [...prevHistory, botMessage]); // empty bot message = placeholder
-
-    let currentIndex = 0;
-    const words = botFullResponse.split(" "); //split bot message by word
-
-    const intervalId = setInterval(() => {
-      currentIndex++;
-
-      // Update bot's message by each word
-      const updatedText = words.slice(0, currentIndex).join(" ");
-
-      // Update the last message in chatHistory with the updated text
-      setChatHistory(prevHistory => {
-        const newHistory = [...prevHistory];
-        const lastMessageIndex = newHistory.length - 1;
-
-        if (newHistory[lastMessageIndex].sender === "bot") {
-          newHistory[lastMessageIndex] = {
-            ...newHistory[lastMessageIndex],
-            text: updatedText
-          };
-        }
-        return newHistory;
-      });
-
-      // Stop interval when full message is typed out
-      if (currentIndex === words.length) {
-        clearInterval(intervalId);
-      }
-    }, 300); // interval time (500ms for each word)
-  }
-
-
-    /* fetch(`${url}query`, {
+    setChatHistory(prevHistory => [...prevHistory, botMessage]);
+  
+    fetch(`${url}query`, {
       method: 'POST',
       body: JSON.stringify({ prompt: message }),
       headers: {
         'Content-Type': 'application/json'
       }
-    }).then(response => {
-      return response.json();
-    }).then(data => {
-      setResponse(data.response);
-    }); //for fetching dynamic rersponse from backend
-    setMessage("");
-  }*/
+    }).then(response => response.json())
+      .then(data => {
+        const botFullResponse = data.response;
+  
+        let currentIndex = 0;
+        const words = botFullResponse.split(" "); //split bot message by word
+  
+        // Update bot's message progressively
+        const intervalId = setInterval(() => {
+          currentIndex++;
+  
+          // Update bot's message by each word
+          const updatedText = words.slice(0, currentIndex).join(" ");
+  
+          // Update the last message in chatHistory with the updated text
+          setChatHistory(prevHistory => {
+            const newHistory = [...prevHistory];
+            const lastMessageIndex = newHistory.length - 1;
+  
+            if (newHistory[lastMessageIndex].sender === "bot") {
+              newHistory[lastMessageIndex] = {
+                ...newHistory[lastMessageIndex],
+                text: updatedText
+              };
+            }
+            return newHistory;
+          });
+  
+          // Stop interval when full message is typed out
+          if (currentIndex === words.length) {
+            clearInterval(intervalId);
+          }
+        }, 300); // interval time (300ms for each word)
+      });
+  }
+
   function handleMessage(e) {   
     setMessage(e.target.value); 
   }
