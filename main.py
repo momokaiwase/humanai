@@ -42,14 +42,12 @@ class QueryResponse(BaseModel):
 async def query_openai(request: QueryRequest):
     try:
         # Set your OpenAI API key
-        
-
         # Call the OpenAI API via LangChain
         chat_completion = client.chat.completions.create(
             messages=[
                 {
                     "role": "user",
-                    "content": "Say this is a test",
+                    "content": request.prompt,
                 }
             ],
             model="gpt-3.5-turbo",
