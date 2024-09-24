@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useEffect, useRef } from 'react';
 import { csvParse, autoType } from 'd3-dsv'; //import d3-dsv for CSV parsing
+import { VegaLite } from 'react-vega';
 
 const url = process.env.NODE_ENV === 'production' ? 'https://course-tools-demo.onrender.com/' : 'http://127.0.0.1:8000/';
 
@@ -13,6 +14,8 @@ function App() {
   const [fileError, setFileError] = useState("");
   const [dragging, setDragging] = useState(false);
   const [showTable, setShowTable] = useState(false); // table visibility
+  const [columnsInfo, setColumnsInfo] = useState(null); // To store columns and data types
+  const [vegaSpec, setVegaSpec] = useState(null);
   
   //handle file upload and csv parsing
   const handleFileUpload = (file) => {
@@ -78,36 +81,42 @@ function App() {
     }).then(response => response.json())
       .then(data => {
         const botFullResponse = data.response;
+
+        //check if reseponse is Vega-Lite spec
+        if (data.vegaSpec) {
+          setVegaSpec(data.vegaSpec); // Store Vega-Lite spec for rendering
+        } else {
   
-        let currentIndex = 0;
-        const words = botFullResponse.split(" "); //split bot message by word
-  
-        // Update bot's message progressively
-        const intervalId = setInterval(() => {
-          currentIndex++;
-  
-          // Update bot's message by each word
-          const updatedText = words.slice(0, currentIndex).join(" ");
-  
-          // Update the last message in chatHistory with the updated text
-          setChatHistory(prevHistory => {
-            const newHistory = [...prevHistory];
-            const lastMessageIndex = newHistory.length - 1;
-  
-            if (newHistory[lastMessageIndex].sender === "bot") {
-              newHistory[lastMessageIndex] = {
-                ...newHistory[lastMessageIndex],
-                text: updatedText
-              };
+          let currentIndex = 0;
+          const words = botFullResponse.split(" "); //split bot message by word
+    
+          // Update bot's message progressively
+          const intervalId = setInterval(() => {
+            currentIndex++;
+    
+            // Update bot's message by each word
+            const updatedText = words.slice(0, currentIndex).join(" ");
+    
+            // Update the last message in chatHistory with the updated text
+            setChatHistory(prevHistory => {
+              const newHistory = [...prevHistory];
+              const lastMessageIndex = newHistory.length - 1;
+    
+              if (newHistory[lastMessageIndex].sender === "bot") {
+                newHistory[lastMessageIndex] = {
+                  ...newHistory[lastMessageIndex],
+                  text: updatedText
+                };
+              }
+              return newHistory;
+            });
+    
+            // Stop interval when full message is typed out
+            if (currentIndex === words.length) {
+              clearInterval(intervalId);
             }
-            return newHistory;
-          });
-  
-          // Stop interval when full message is typed out
-          if (currentIndex === words.length) {
-            clearInterval(intervalId);
-          }
-        }, 300); // interval time (300ms for each word)
+          }, 300); // interval time (300ms for each word)
+        }
       });
   }
 
