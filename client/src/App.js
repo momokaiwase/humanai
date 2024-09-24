@@ -12,6 +12,7 @@ function App() {
   const [fileData, setFileData] = useState(null);
   const [fileError, setFileError] = useState("");
   const [dragging, setDragging] = useState(false);
+  const [showTable, setShowTable] = useState(false); // table visibility
   
   //handle file upload and csv parsing
   const handleFileUpload = (file) => {
@@ -22,11 +23,13 @@ function App() {
         const parsedData = csvParse(text, autoType);
         setFileData(parsedData);
         setFileError(""); //clear error messages
+        setShowTable(true); //Show table after a successful upload
       };
       reader.readAsText(file);
     } else {
       setFileError("Please upload a valid CSV file.");
       setFileData(null); //clear previous data
+      setShowTable(false); // Hide table if upload fails
     }
   };
 
@@ -129,63 +132,77 @@ function App() {
 
   return (
     <div className="flex flex-col h-screen">
-      <div className="sticky top-0 p-4 z-10">
+      <div className="sticky top-0 p-4 z-20 bg-base-100">
         <h1 className="text-4xl mb-4">AI Assistant</h1>
       </div>
       {/* File Upload Section */}
-      <div
-        className={`p-6 border-2 border-dotted rounded-md mx-auto text-center transition-colors 
-          ${dragging ? 'bg-base-300' : 'bg-base-200'} w-1/2`} // Use DaisyUI's base color classes
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
-        <input
-          type="file"
-          accept=".csv"
-          className="hidden"
-          id="file-upload"
-          onChange={handleFileInputChange}
-        />
-        <label
-          htmlFor="file-upload"
-          className="cursor-pointer p-2 block"
+      <div className="sticky top-16 p-4 z-10 bg-base-100">
+        <div
+          className={`p-6 border-2 border-dotted rounded-md mx-auto text-center transition-colors 
+            ${dragging ? 'bg-base-300' : 'bg-base-200'} w-1/2`} // Use DaisyUI's base color classes
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
         >
-          {fileData ? (
-            <span>CSV File Uploaded</span>
-          ) : (
-            <span>Drag & Drop or Click to Upload CSV File</span>
-          )}
-        </label>
-        {fileError && <p className="text-error">{fileError}</p>} {/* Use DaisyUI's text-error class */}
+          <input
+            type="file"
+            accept=".csv"
+            className="hidden"
+            id="file-upload"
+            onChange={handleFileInputChange}
+          />
+          <label
+            htmlFor="file-upload"
+            className="cursor-pointer p-2 block"
+          >
+            {fileData ? (
+              <span>CSV File Uploaded! Drag & Drop or Click for New File Upload</span>
+            ) : (
+              <span>Drag & Drop or Click to Upload CSV File</span>
+            )}
+          </label>
+          {fileError && <p className="text-error">{fileError}</p>} {/* Use DaisyUI's text-error class */}
+        </div>
+          
+        {/* Toggle Button to Show/Hide Table */}
         {fileData && (
-          <div className="mt-4">
-            <h3 className="text-lg font-bold">Data Preview (first 5 rows):</h3>
-            <table className="table w-full">
-              <thead>
-                <tr>
-                  {Object.keys(fileData[0]).map((key, index) => (
-                    <th key={index}>{key}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {fileData.slice(0, 5).map((row, rowIndex) => (
-                  <tr key={rowIndex}>
-                    {Object.values(row).map((value, colIndex) => (
-                      <td key={colIndex}>{value}</td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="mt-4 text-center">
+            <button
+              className="btn btn-primary"
+              onClick={() => setShowTable(!showTable)} // Toggle the table visibility
+            >
+              {showTable ? "Hide Data Table" : "Show Data Table"}              </button>
           </div>
         )}
       </div>
 
+      {/* Data Table (outside the upload section) */}
+      {fileData && showTable && (
+        <div className="mx-auto w-3/4 p-4">
+          <h3 className="text-lg font-bold mb-4">Data Preview (first 5 rows):</h3>
+          <table className="table w-full">
+            <thead>
+              <tr>
+                {Object.keys(fileData[0]).map((key, index) => (
+                  <th key={index}>{key}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {fileData.slice(0, 5).map((row, rowIndex) => (
+                <tr key={rowIndex}>
+                  {Object.values(row).map((value, colIndex) => (
+                    <td key={colIndex}>{value}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
+      {/* Chat History */}
       <div className="flex-1 overflow-y-auto p-4">
-        {/* Chat History */}
         <div className="w-custom-md lg:w-custom-lg mx-auto p-4">
           <div className="chat-box flex flex-col space-y-4">
             {chatHistory.map((entry, index) => (
