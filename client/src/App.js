@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { csvParse, autoType } from 'd3-dsv'; //import d3-dsv for CSV parsing
 import { VegaLite } from 'react-vega';
 
-const url = process.env.NODE_ENV === 'production' ? 'https://course-tools-demo.onrender.com/' : 'http://127.0.0.1:8000/';
+const url = process.env.NODE_ENV === 'production' ? 'https://humanai-3.onrender.com' : 'http://127.0.0.1:8000/';
 
 function App() {
   const [message, setMessage] = useState("");
