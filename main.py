@@ -50,6 +50,7 @@ class QueryRequest(BaseModel):
 class QueryResponse(BaseModel):
     response: str
     vegaSpec: dict
+    cols: list
 
 def validate_vega_lite_spec(spec: dict):
     try:
@@ -67,6 +68,8 @@ async def query_openai(request: QueryRequest):
     try:
         # Construct a prompt to send to OpenAI for Vega-Lite spec generation
         df = pd.DataFrame(json.loads(request.sample_data))
+        if df.empty:
+            return QueryResponse(response="Please provide a prompt and CSV data.", vegaSpec={})
 
         columns = df.columns.tolist()
         logging.info(f"Columns: {columns}")
@@ -78,7 +81,7 @@ async def query_openai(request: QueryRequest):
         relevant_columns_prompt = f"""
             Here is a sample of the full dataset: {df}. 
             Choose relevant columns of the dataset from {columns}, based on the user's prompt: {request.prompt}. At least 1 of the chosen columns must have type 'number'.
-            Return the relevant columns in a list separated by commas. Do not give reasons or descriptions.
+            Return the relevant columns in a list of strings separated by commas. Do not give reasons or descriptions.
         """
 
         column_response = client.chat.completions.create(
@@ -88,8 +91,16 @@ async def query_openai(request: QueryRequest):
                 {"role": "user", "content": relevant_columns_prompt}
             ],
         )
-        rel_columns = column_response.choices[0].message.content.strip().split(',')
-        rel_columns = [col.strip() for col in rel_columns]
+
+        
+        ai_column_response = column_response.choices[0].message.content.strip()
+        
+        # Remove any surrounding brackets, quotes, or extra spaces
+        ai_column_response = ai_column_response.replace("[", "").replace("]", "").replace("'", "").strip()
+        
+        # Split the columns and clean up any extra spaces
+        rel_columns = [col.strip() for col in ai_column_response.split(',')]
+
         logging.info(f"Relevant Columns: {rel_columns}")
 
         rel_df = df[rel_columns]
@@ -154,10 +165,11 @@ async def query_openai(request: QueryRequest):
                 response="The generated Vega-Lite specification is ill-formed and cannot be used. Please refine your query.",
                 vegaSpec={}
             )
-        return QueryResponse(response=text_response, vegaSpec=vega_spec)
+        return QueryResponse(response=text_response, vegaSpec=vega_spec, cols=rel_columns)
     except Exception as e:
-        logging.error(f"Error in query_openai: {str(e)}")  # Log the error
-        raise HTTPException(status_code=500, detail=str(e))
+        if type(e) is KeyError:
+            return QueryResponse(response="Please try again, providing a relevant prompt.", vegaSpec={})
+        return QueryResponse(response="Please try again, unfortunately an error occurred.", vegaSpec={})
 
 # Root endpoint
 @app.get("/")
