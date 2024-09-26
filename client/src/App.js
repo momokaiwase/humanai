@@ -16,6 +16,7 @@ function App() {
   const [showTable, setShowTable] = useState(false); // table visibility
   const [columnsInfo, setColumnsInfo] = useState(null); // To store columns and data types
   const [vegaSpec, setVegaSpec] = useState(null);
+  const [explanation, setExplanation] = useState(""); // Explanation text from backend
   
   //handle file upload and csv parsing
   const handleFileUpload = (file) => {
@@ -25,8 +26,14 @@ function App() {
         const text = event.target.result;
         const parsedData = csvParse(text, autoType);
         setFileData(parsedData);
-        setFileError(""); //clear error messages
-        setShowTable(true); //Show table after a successful upload
+
+        const columnsInfo = Object.keys(parsedData[0]).map(key => ({
+          name: key,
+          type: typeof parsedData[0][key],
+          }));
+        setColumnsInfo(columnsInfo);
+        setFileError("");
+        setShowTable(true);
       };
       reader.readAsText(file);
     } else {
@@ -71,52 +78,40 @@ function App() {
     // Add empty bot message as a placeholder in chat history
     const botMessage = { text: "", sender: "bot" };
     setChatHistory(prevHistory => [...prevHistory, botMessage]);
+    
+    const formattedColumnsInfo = columnsInfo.map(col => ({
+      name: String(col.name),
+      type: String(col.type)
+    }));
   
+    const payload = {
+      prompt: message,
+      columns_info: formattedColumnsInfo, // Corrected structure
+      sample_data: JSON.stringify(fileData.slice(0,10))
+    };  
+
     fetch(`${url}query`, {
       method: 'POST',
-      body: JSON.stringify({ prompt: message }),
+      body: JSON.stringify(payload),
+      mode: 'cors',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       }
-    }).then(response => response.json())
+    }).then(response => {
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
+      return response.json();
+    })
       .then(data => {
-        const botFullResponse = data.response;
-
-        //check if reseponse is Vega-Lite spec
-        if (data.vegaSpec) {
-          setVegaSpec(data.vegaSpec); // Store Vega-Lite spec for rendering
-        } else {
-  
-          let currentIndex = 0;
-          const words = botFullResponse.split(" "); //split bot message by word
-    
-          // Update bot's message progressively
-          const intervalId = setInterval(() => {
-            currentIndex++;
-    
-            // Update bot's message by each word
-            const updatedText = words.slice(0, currentIndex).join(" ");
-    
-            // Update the last message in chatHistory with the updated text
-            setChatHistory(prevHistory => {
-              const newHistory = [...prevHistory];
-              const lastMessageIndex = newHistory.length - 1;
-    
-              if (newHistory[lastMessageIndex].sender === "bot") {
-                newHistory[lastMessageIndex] = {
-                  ...newHistory[lastMessageIndex],
-                  text: updatedText
-                };
-              }
-              return newHistory;
-            });
-    
-            // Stop interval when full message is typed out
-            if (currentIndex === words.length) {
-              clearInterval(intervalId);
-            }
-          }, 300); // interval time (300ms for each word)
-        }
+        console.log("Data received:", data); // Log the received data
+        console.log("Vega-Lite Specification:", vegaSpec); //Ensure that the Vega-Lite specification being generated is valid and contains necessary properties like mark, encoding, etc
+        const botMessage = {
+          text: data.response || "Here's the generated chart",
+          sender: "bot",
+          vegaSpec: data.vegaSpec || null, 
+        };
+        setChatHistory(prevHistory => [...prevHistory, botMessage]);
       });
   }
 
@@ -228,7 +223,16 @@ function App() {
                 <div className="chat-header">
                   {entry.sender === 'user' ? 'You' : 'Bot'}
                 </div>
-                <div className="chat-bubble">{entry.text}</div>
+                  {/* Chat Bubble for text */}
+                <div className="chat-bubble">
+                {entry.text}
+                  {/* Render VegaLite Chart if present */}
+                  {entry.vegaSpec && (
+                    <div className="mt-4">
+                      <VegaLite spec={entry.vegaSpec} />
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
             <div ref={chatEndRef} /> {/* Scroll to this element */}
