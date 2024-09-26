@@ -24,7 +24,7 @@ app = FastAPI()
 #Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://momokaiwase.github.io/humanai/"],
+    allow_origins=["https://momokaiwase.github.io"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
