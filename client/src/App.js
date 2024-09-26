@@ -76,8 +76,20 @@ function App() {
     setMessage(""); //reset to no message
   
     // Add empty bot message as a placeholder in chat history
-    const botMessage = { text: "", sender: "bot" };
+    const botMessage = { text: "please wait...", sender: "bot" };
     setChatHistory(prevHistory => [...prevHistory, botMessage]);
+
+    function extractRelData(array, keys) {
+      return array.map(obj => {
+        let result = {};
+        keys.forEach(key => {
+          if (obj[key] !== undefined) {
+            result[key] = obj[key];
+          }
+        });
+        return result;
+      });
+    }
     
     const formattedColumnsInfo = columnsInfo.map(col => ({
       name: String(col.name),
@@ -105,12 +117,15 @@ function App() {
     })
       .then(data => {
         console.log("Data received:", data); // Log the received data
-        console.log("Vega-Lite Specification:", vegaSpec); //Ensure that the Vega-Lite specification being generated is valid and contains necessary properties like mark, encoding, etc
+        const full_data = extractRelData(fileData, data.cols)
+        const chart_data = data.vegaSpec
+        chart_data.data.values = full_data
         const botMessage = {
           text: data.response || "Here's the generated chart",
           sender: "bot",
-          vegaSpec: data.vegaSpec || null, 
+          vegaSpec: chart_data || null, 
         };
+
         setChatHistory(prevHistory => [...prevHistory, botMessage]);
       });
   }
