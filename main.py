@@ -24,7 +24,7 @@ app = FastAPI()
 #Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://momokaiwase.github.io"],
+    allow_origins=["*"], #"https://momokaiwase.github.io" when deployed
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

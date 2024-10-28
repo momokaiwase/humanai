@@ -17,6 +17,7 @@ function App() {
   const [columnsInfo, setColumnsInfo] = useState(null); // To store columns and data types
   const [vegaSpec, setVegaSpec] = useState(null);
   const [explanation, setExplanation] = useState(""); // Explanation text from backend
+  const [loading, setLoading] = useState(false); // Loading state
   
   //handle file upload and csv parsing
   const handleFileUpload = (file) => {
@@ -65,7 +66,6 @@ function App() {
     handleFileUpload(file);
   };
 
-
   //send message to backend
   function sendMessage() {
     if (message === "") {
@@ -76,7 +76,8 @@ function App() {
     setMessage(""); //reset to no message
   
     // Add empty bot message as a placeholder in chat history
-    const botMessage = { text: "please wait...", sender: "bot" };
+    setLoading(true);
+    const botMessage = { text: "", sender: "bot", loading: true};
     setChatHistory(prevHistory => [...prevHistory, botMessage]);
 
     function extractRelData(array, keys) {
@@ -116,17 +117,27 @@ function App() {
       return response.json();
     })
       .then(data => {
+        setLoading(false);
         console.log("Data received:", data); // Log the received data
         const full_data = extractRelData(fileData, data.cols)
         const chart_data = data.vegaSpec
         chart_data.data.values = full_data
+        if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].loading) {
+          // Remove the last loading message before adding the new one
+          setChatHistory(prevHistory => prevHistory.slice(0, -1));
+        }
         const botMessage = {
+          loading: false,
           text: data.response || "Here's the generated chart",
           sender: "bot",
           vegaSpec: chart_data || null, 
         };
 
         setChatHistory(prevHistory => [...prevHistory, botMessage]);
+      })
+      .catch(error => {
+        setLoading(false); // Turn off loading state in case of error
+        console.error("Error fetching data:", error);
       });
   }
 
@@ -140,6 +151,10 @@ function App() {
       sendMessage();
     }
   }
+
+  const handleClearMessages = () => {
+    setChatHistory([]);
+  };
 
   const chatEndRef = useRef(null);
 
@@ -239,16 +254,38 @@ function App() {
                   {entry.sender === 'user' ? 'You' : 'Bot'}
                 </div>
                   {/* Chat Bubble for text */}
-                <div className="chat-bubble">
-                {entry.text}
-                  {/* Render VegaLite Chart if present */}
-                  {entry.vegaSpec && (
-                    <div className="mt-4">
-                      <VegaLite spec={entry.vegaSpec} />
-                    </div>
-                  )}
+                  <div className="chat-bubble">
+                    {entry.sender === "bot" && entry.loading ? (
+                      <div className="flex items-center">
+                        {/* Loading Spinner */}
+                        <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <style>
+                            {`.spinner_S1WN{animation:spinner_MGfb .8s linear infinite;animation-delay:-.8s}
+                              .spinner_Km9P{animation-delay:-.65s}
+                              .spinner_JApP{animation-delay:-.5s}
+                              @keyframes spinner_MGfb{93.75%,100%{opacity:.2}}`}
+                          </style>
+                          <circle className="spinner_S1WN" cx="4" cy="12" r="3" />
+                          <circle className="spinner_S1WN spinner_Km9P" cx="12" cy="12" r="3" />
+                          <circle className="spinner_S1WN spinner_JApP" cx="20" cy="12" r="3" />
+                        </svg>
+                      </div>
+                    ) : (
+                      <div>
+                        {entry.text} {/* Display the bot's response or the generated chart */}
+                        {/* Render VegaLite Chart if present */}
+                        {entry.vegaSpec && (
+                          <div className="mt-4">
+                            <VegaLite spec={entry.vegaSpec} />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+
+                
+
             ))}
             <div ref={chatEndRef} /> {/* Scroll to this element */}
           </div>
@@ -268,6 +305,8 @@ function App() {
               onKeyDown={handleKeyPress}
             />
             <button className="btn flex-shrink-0" onClick={sendMessage}>Send</button>
+            <button className="btn flex-shrink-0 btn-error" onClick={handleClearMessages}>Clear Messages</button>
+            
           </div>
         </div>
       </div>
