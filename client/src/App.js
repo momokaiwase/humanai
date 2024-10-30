@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { useEffect, useRef } from 'react';
 import { csvParse, autoType } from 'd3-dsv'; //import d3-dsv for CSV parsing
 import { VegaLite } from 'react-vega';
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 const url = process.env.NODE_ENV === 'production' ? 'https://humanai-3.onrender.com/' : 'http://127.0.0.1:8000/';
 
@@ -15,8 +17,6 @@ function App() {
   const [dragging, setDragging] = useState(false);
   const [showTable, setShowTable] = useState(false); // table visibility
   const [columnsInfo, setColumnsInfo] = useState(null); // To store columns and data types
-  const [vegaSpec, setVegaSpec] = useState(null);
-  const [explanation, setExplanation] = useState(""); // Explanation text from backend
   const [loading, setLoading] = useState(false); // Loading state
   
   //handle file upload and csv parsing
@@ -118,26 +118,25 @@ function App() {
     })
       .then(data => {
         setLoading(false);
-        console.log("Data received:", data); // Log the received data
-        const full_data = extractRelData(fileData, data.cols)
-        const chart_data = data.vegaSpec
-        chart_data.data.values = full_data
-        if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].loading) {
-          // Remove the last loading message before adding the new one
-          setChatHistory(prevHistory => prevHistory.slice(0, -1));
+        
+        try {
+          console.log("Data received:", data); // Log the received data
+          const full_data = extractRelData(fileData, data.cols)
+          const chart_data = data.vegaSpec
+          console.log(chart_data)
+          chart_data.data.values = full_data
+          const botMessage = {
+            text: data.response,
+            sender: "bot",
+            vegaSpec: chart_data
+          };
+          setChatHistory(prevHistory => [...prevHistory, botMessage]);
         }
-        const botMessage = {
-          loading: false,
-          text: data.response || "Here's the generated chart",
-          sender: "bot",
-          vegaSpec: chart_data || null, 
-        };
-
-        setChatHistory(prevHistory => [...prevHistory, botMessage]);
-      })
-      .catch(error => {
-        setLoading(false); // Turn off loading state in case of error
-        console.error("Error fetching data:", error);
+        catch(error) {
+          const botMessage = { sender: "bot", text: data.response, spec: null };
+          setChatHistory(prevHistory => [...prevHistory, botMessage]);
+          console.error("Error fetching data:", error);
+        }
       });
   }
 
@@ -272,8 +271,7 @@ function App() {
                       </div>
                     ) : (
                       <div>
-                        {entry.text} {/* Display the bot's response or the generated chart */}
-                        {/* Render VegaLite Chart if present */}
+                        <Markdown remarkPlugins={[remarkGfm]}>{entry.text}</Markdown>
                         {entry.vegaSpec && (
                           <div className="mt-4">
                             <VegaLite spec={entry.vegaSpec} />
