@@ -16,7 +16,7 @@ function App() {
   const [fileError, setFileError] = useState("");
   const [dragging, setDragging] = useState(false);
   const [showTable, setShowTable] = useState(false); // table visibility
-  const [columnsInfo, setColumnsInfo] = useState(null); // To store columns and data types
+  //const [columnsInfo, setColumnsInfo] = useState(null); // To store columns and data types
   const [loading, setLoading] = useState(false); // Loading state
   
   //handle file upload and csv parsing
@@ -28,11 +28,11 @@ function App() {
         const parsedData = csvParse(text, autoType);
         setFileData(parsedData);
 
-        const columnsInfo = Object.keys(parsedData[0]).map(key => ({
+        /* const columnsInfo = Object.keys(parsedData[0]).map(key => ({
           name: key,
           type: typeof parsedData[0][key],
-          }));
-        setColumnsInfo(columnsInfo);
+          })); */
+        //setColumnsInfo(columnsInfo);
         setFileError("");
         setShowTable(true);
       };
@@ -92,14 +92,14 @@ function App() {
       });
     }
     
-    const formattedColumnsInfo = columnsInfo.map(col => ({
+    /* const formattedColumnsInfo = columnsInfo.map(col => ({
       name: String(col.name),
       type: String(col.type)
-    }));
+    })); */
   
     const payload = {
       prompt: message,
-      columns_info: formattedColumnsInfo, // Corrected structure
+      //columns_info: formattedColumnsInfo, // Corrected structure
       sample_data: JSON.stringify(fileData.slice(0,10))
     };  
 
@@ -121,10 +121,11 @@ function App() {
         
         try {
           console.log("Data received:", data); // Log the received data
-          const full_data = extractRelData(fileData, data.cols)
+          const cols = Object.keys(data.vegaSpec.data.values[0])
+          const full_data = extractRelData(fileData, cols)
           const chart_data = data.vegaSpec
-          console.log(chart_data)
-          chart_data.data.values = full_data
+          chart_data.data.values = full_data;
+
           const botMessage = {
             text: data.response,
             sender: "bot",
@@ -133,9 +134,8 @@ function App() {
           setChatHistory(prevHistory => [...prevHistory, botMessage]);
         }
         catch(error) {
-          const botMessage = { sender: "bot", text: data.response, spec: null };
+          const botMessage = { sender: "bot", text: data.response, vegaSpec: null };
           setChatHistory(prevHistory => [...prevHistory, botMessage]);
-          console.error("Error fetching data:", error);
         }
       });
   }
