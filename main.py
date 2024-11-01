@@ -47,13 +47,11 @@ class ColumnInfo(BaseModel):
 
 class QueryRequest(BaseModel):
     prompt: str
-    #columns_info: List[ColumnInfo] 
     sample_data: str
 
 class QueryResponse(BaseModel):
     response: str
     vegaSpec: dict
-    #cols: list
 
 class CodeResponse(BaseModel):
     code: str
@@ -192,15 +190,14 @@ def generate_chart(data, input_prompt):
         return QueryResponse(response="There was an issue generating the visualization, please try again.", vegaSpec={})
     
     vega_spec = ai_response_json.get("vegaSpec", {})
-    logging.info(f"Received vegaSpec from generate_chart: {vega_spec}")
+    #logging.info(f"Received vegaSpec from generate_chart: {vega_spec}")
     text_response = ai_response_json.get("response", {})
-    logging.info(f"Received vegaSpec from generate_chart: {text_response}")
+    #logging.info(f"Received vegaSpec from generate_chart: {text_response}")
 
     if not validate_vega_lite_spec(vega_spec):
         return QueryResponse(
         response="This task doesn't require chart generation. Returning an empty Vega-Lite specification.",
         vegaSpec={},
-        #cols=rel_cols
         )
 
     return QueryResponse(response=text_response, vegaSpec = vega_spec)
@@ -323,22 +320,16 @@ def query(question, system_prompt, tools, tool_map, max_iterations=10):
             print_blue("calling:", tool_call.function.name, "with", tool_call.function.arguments)
             # call the function
             arguments = json.loads(tool_call.function.arguments)
-            print("constructed arguments", arguments)
-            print(tool_call.function.name)
+
+
             function_to_call = tool_map[tool_call.function.name]
-            print("pulled function to call", function_to_call)
             output = function_to_call(**arguments)
-            print("assigned result:", output)
             if tool_call.function.name == "generate_chart":
-                print("if statement for generate_chart")
                 vegaSpec = output.vegaSpec
                 print(vegaSpec)
 
             # create a message containing the result of the function call
-            print("Before creating result_content")
             result_content = json.dumps({**arguments, "result": str(output)})
-            print("After creating result_content")
-            print(result_content)
             function_call_result_message = {
                 "role": "tool",
                 "content": result_content,
@@ -358,8 +349,8 @@ async def query_openai(request: QueryRequest):
     logging.info(f"Received request: {request}")  # Log the whole request object
     try:
     
-        if json.loads(request.sample_data) == []:
-            return QueryResponse(response="Please provide a valid CSV data", vega_lite_json="")
+        if request.sample_data == "":
+            return QueryResponse(response="Please provide a valid CSV data", vegaSpec={})
         prompt = f'''
             User prompt: {request.prompt}
             Data Sample: {request.sample_data}
