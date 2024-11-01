@@ -100,8 +100,8 @@ function App() {
     const payload = {
       prompt: message,
       //columns_info: formattedColumnsInfo, // Corrected structure
-      sample_data: JSON.stringify(fileData.slice(0,10))
-    };  
+      sample_data: fileData ? JSON.stringify(fileData.slice(0, 10)) : ""
+    };
 
     fetch(`${url}query`, {
       method: 'POST',
