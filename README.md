@@ -21,3 +21,24 @@ The development of AI Assistant was motivated by the desire to explore the use o
  * deployed on render, github pages
 
 ## Use Examples
+### Uploading Data (CSV file)
+<img width="1470" alt="Screenshot 2024-11-12 at 0 18 24" src="https://github.com/user-attachments/assets/9dcbda64-941d-4041-8548-07579d5e01c3">
+
+### Data Analysis and Visualization Example 1
+<img width="1470" alt="Screenshot 2024-11-12 at 0 21 00" src="https://github.com/user-attachments/assets/6bd5f862-af8c-4cea-b454-292b8e7a6b87">
+
+<img width="1470" alt="Screenshot 2024-11-12 at 0 21 33" src="https://github.com/user-attachments/assets/2d1d7675-1ddd-40fd-b989-e0f96089d88e">
+
+<img width="1470" alt="Screenshot 2024-11-12 at 0 24 07" src="https://github.com/user-attachments/assets/505c8571-d8e2-4e47-9fb5-aa647d889a12">
+
+### Data Analysis and Visualization Example 2
+
+<img width="1470" alt="Screenshot 2024-11-12 at 0 24 56" src="https://github.com/user-attachments/assets/3a26b165-fd25-447e-81ee-2a2d1db45ef5">
+
+<img width="1470" alt="Screenshot 2024-11-12 at 0 25 39" src="https://github.com/user-attachments/assets/4e2d25d7-6192-4817-a9ec-57d0763fd6ba">
+
+### Data Analysis and Visualization Example 3
+<img width="1470" alt="Screenshot 2024-11-12 at 0 26 21" src="https://github.com/user-attachments/assets/38dac601-8544-46d6-a03c-8ab83cf04cbd">
+<img width="1470" alt="Screenshot 2024-11-12 at 0 29 04" src="https://github.com/user-attachments/assets/2d778f52-2814-4d60-9749-97efd9a9cfc4">
+
+
