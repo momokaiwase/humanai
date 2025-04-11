@@ -15,7 +15,7 @@ AI Assistant is an AI chat bot that produces data visualization and data analysi
  * Javascript
  * TailwindCSS
  * DaisyUI
- * deployed on render, github pages
+ * deployed on render, github pages at [https://momokaiwase.github.io/humanai/](https://momokaiwase.github.io/humanai/)
 
 ## Use Examples
 ### Uploading Data (CSV file)
